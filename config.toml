@@ -1,0 +1,6 @@
+[server]
+port = 5000  # or 8501, depending on your preference
+address = "127.0.0.1"
+enableCORS = false
+enableXsrfProtection = false
+fileWatcherType = "none"

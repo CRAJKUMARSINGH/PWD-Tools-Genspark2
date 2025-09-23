@@ -3,222 +3,134 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PWD Tools - Infrastructure Management Suite</title>
+    <title>Integrated PWD Tools</title>
     <style>
-        :root {
-            --primary: #2E8B57;
-            --primary-light: #3CB371;
-            --secondary: #4169E1;
-            --background: #f0f8f5;
-            --card-bg: #ffffff;
+        :root{
+            --bg: #f8f9fa;
+            --card: #ffffff;
             --text: #333333;
-            --text-light: #666666;
+            --muted: #666666;
+            --primary: #2E8B57; /* green like deductions page */
+            --primary2: #3CB371; /* lighter green */
+            --ring: rgba(46,139,87,.25);
+            --radius: 12px;
+            --shadow: 0 4px 6px rgba(0,0,0,.08);
         }
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #f0f8f5 0%, #e8f5e8 100%);
+        *{box-sizing:border-box}
+        body{
+            margin:0;
+            font-family: Arial, sans-serif;
+            background: var(--bg);
             color: var(--text);
-            line-height: 1.6;
         }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
+        .container{
+            max-width:1100px;
+            margin:0 auto;
+            padding:32px 16px 40px;
         }
-        
-        header {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-            color: white;
-            text-align: center;
-            padding: 40px 20px;
-            border-radius: 15px;
-            margin-bottom: 30px;
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        .header{
+            background: linear-gradient(135deg, var(--primary), var(--primary2));
+            color:#fff;
+            border-radius: var(--radius);
+            padding:24px;
+            text-align:center;
+            box-shadow: var(--shadow);
         }
-        
-        h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
+        .subtitle{opacity:.98;margin-top:6px}
+        .credit{margin-top:10px;font-size:.95rem;opacity:.98}
+        .grid{
+            margin-top:22px;
+            display:grid;
+            grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+            gap:14px;
         }
-        
-        .subtitle {
-            font-size: 1.2rem;
-            opacity: 0.95;
-            max-width: 800px;
-            margin: 0 auto;
+        .card{
+            display:block;
+            text-decoration:none;
+            background:var(--card);
+            border:1px solid #d5dfd8;
+            border-radius: var(--radius);
+            padding:20px;
+            text-align:center;
+            color:inherit;
+            box-shadow: var(--shadow);
+            transition:transform .15s ease, box-shadow .15s ease, filter .15s ease;
         }
-        
-        .content {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 25px;
-            margin-bottom: 40px;
-        }
-        
-        .card {
-            background: var(--card-bg);
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
-            border: 2px solid var(--primary);
-        }
-        
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-        }
-        
-        .card h2 {
-            color: var(--primary);
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .card p {
-            color: var(--text-light);
-            margin-bottom: 20px;
-        }
-        
-        .btn {
-            display: inline-block;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-            color: white;
-            padding: 12px 25px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: bold;
-            transition: all 0.3s ease;
-            border: none;
-            cursor: pointer;
-            text-align: center;
-        }
-        
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(46, 139, 87, 0.3);
-        }
-        
-        .btn-block {
-            display: block;
-            width: 100%;
-        }
-        
-        footer {
-            text-align: center;
-            padding: 30px;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-            color: white;
-            border-radius: 15px;
-            margin-top: 30px;
-        }
-        
-        .features {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin: 30px 0;
-        }
-        
-        .feature {
-            text-align: center;
-            padding: 20px;
-            background: rgba(255, 255, 255, 0.7);
-            border-radius: 10px;
-        }
-        
-        .feature-icon {
-            font-size: 2rem;
-            margin-bottom: 15px;
-            color: var(--primary);
-        }
+        .card:hover{transform:translateY(-2px); box-shadow:0 8px 18px rgba(0,0,0,.12); filter:brightness(1.01)}
+        .icon{font-size:2rem;margin-bottom:8px}
+        .title{font-weight:700;letter-spacing:.2px;color:var(--primary)}
+        .desc{font-size:.92rem; color:#374151; opacity:.9; margin-top:4px}
+        .ext{font-size:.9rem; color:var(--primary); margin-top:10px}
+        .footer{margin-top:26px; text-align:center; color:var(--muted); font-size:.95rem}
     </style>
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1>🏗️ PWD Tools Hub</h1>
-            <p class="subtitle">Infrastructure Management Suite - Streamlined Tools for Public Works Department</p>
-        </header>
-        
-        <div class="features">
-            <div class="feature">
-                <div class="feature-icon">📊</div>
-                <h3>10+ Tools</h3>
-                <p>Comprehensive suite of engineering and financial tools</p>
-            </div>
-            <div class="feature">
-                <div class="feature-icon">💻</div>
-                <h3>Web-Based</h3>
-                <p>Access from any device with a web browser</p>
-            </div>
-            <div class="feature">
-                <div class="feature-icon">🔒</div>
-                <h3>Secure</h3>
-                <p>All data processed locally, no external storage</p>
-            </div>
-            <div class="feature">
-                <div class="feature-icon">🚀</div>
-                <h3>Efficient</h3>
-                <p>Streamline your workflow and save time</p>
-            </div>
+        <div class="header">
+            <h1 style="margin:0">Integrated PWD Tools</h1>
+            <div class="subtitle">Infrastructure Management Suite</div>
+            <div class="credit">Prepared on Initiative of Mrs. Premlata Jain, AAO, PWD Udaipur</div>
         </div>
-        
-        <div class="content">
-            <div class="card">
-                <h2>🌐 Web Application</h2>
-                <p>Run the full Streamlit web application with all interactive tools.</p>
-                <a href="pwd_tools_app.py" class="btn btn-block">Launch Web App</a>
-            </div>
-            
-            <div class="card">
-                <h2>📂 Static HTML Tools</h2>
-                <p>Access individual tools as standalone HTML files for quick calculations.</p>
-                <a href="static/html/BillNoteSheet.html" class="btn btn-block">Bill Note Sheet</a>
-                <a href="static/html/DeductionsTable.html" class="btn btn-block" style="margin-top: 10px;">Deductions Table</a>
-                <a href="static/html/EmdRefund.html" class="btn btn-block" style="margin-top: 10px;">EMD Refund</a>
-            </div>
-            
-            <div class="card">
-                <h2>⚙️ Installation</h2>
-                <p>Install required dependencies to run the web application.</p>
-                <pre style="background: #f5f5f5; padding: 15px; border-radius: 8px; font-size: 0.9rem;">
-pip install -r pwd_tools_requirements.txt
-                </pre>
-                <a href="pwd_tools_requirements.txt" class="btn btn-block" style="margin-top: 15px;">View Requirements</a>
-            </div>
+
+        <div class="grid">
+            <a class="card" href="/static/html/BillNoteSheet.html">
+                <div class="icon">📝</div>
+                <div class="title">Bill Note Sheet</div>
+                <div class="desc">Generate PWD Bill Note Sheet</div>
+            </a>
+            <a class="card" href="/static/html/DeductionsTable.html">
+                <div class="icon">📊</div>
+                <div class="title">Deductions Table</div>
+                <div class="desc">Standard deductions calculator</div>
+            </a>
+            <a class="card" href="/static/html/DelayCalculator.html">
+                <div class="icon">⏰</div>
+                <div class="title">Delay Calculator</div>
+                <div class="desc">Project delay & timeline</div>
+            </a>
+            <a class="card" href="/static/html/EmdRefund.html">
+                <div class="icon">💰</div>
+                <div class="title">EMD Refund</div>
+                <div class="desc">Refund documentation</div>
+            </a>
+            <a class="card" href="/static/html/SecurityRefund.html">
+                <div class="icon">🔒</div>
+                <div class="title">Security Refund</div>
+                <div class="desc">Security deposit refund</div>
+            </a>
+            <a class="card" href="/static/html/FinancialProgressTracker.html">
+                <div class="icon">📈</div>
+                <div class="title">Financial Progress</div>
+                <div class="desc">Track progress & LD</div>
+            </a>
+            <a class="card" href="/static/html/StampDuty.html">
+                <div class="icon">📋</div>
+                <div class="title">Stamp Duty Calculator</div>
+                <div class="desc">Duty for work orders</div>
+            </a>
+            <a class="card" href="https://raj-bill-generator-v01.streamlit.app/" target="_blank">
+                <div class="icon">💵</div>
+                <div class="title">Bill & Deviation</div>
+                <div class="desc">Infrastructure billing (Streamlit)</div>
+                <div class="ext">Opens in new tab ↗</div>
+            </a>
+            <a class="card" href="https://priyankatenderfinal-unlhs2yudbpg2ipxgdggws.streamlit.app/" target="_blank">
+                <div class="icon">📑</div>
+                <div class="title">Tender Processing</div>
+                <div class="desc">Comprehensive tender management</div>
+                <div class="ext">Opens in new tab ↗</div>
+            </a>
+            <a class="card" href="https://marudharhr.onrender.com/" target="_blank">
+                <div class="icon">🔗</div>
+                <div class="title">Excel se EMD (Web)</div>
+                <div class="desc">Excel to EMD web interface</div>
+                <div class="ext">Opens in new tab ↗</div>
+            </a>
         </div>
-        
-        <div class="card">
-            <h2>📋 Available Tools</h2>
-            <ul style="margin-left: 20px; margin-top: 15px;">
-                <li>Excel se EMD - Generate hand receipts from Excel files</li>
-                <li>Bill Note Sheet - Create PWD bill documentation</li>
-                <li>EMD Refund - Calculate and generate EMD refund documents</li>
-                <li>Deductions Table - Calculate standard bill deductions</li>
-                <li>Delay Calculator - Analyze project delays and timelines</li>
-                <li>Financial Progress - Track financial progress and LDs</li>
-                <li>Security Refund - Process security deposit refunds</li>
-                <li>Stamp Duty - Calculate stamp duty for work orders</li>
-            </ul>
-        </div>
-        
-        <footer>
-            <h3>🏆 Initiative Credit</h3>
-            <p><strong>Mrs. Premlata Jain</strong></p>
-            <p>Additional Administrative Officer, Public Works Department (PWD), Udaipur</p>
-            <p style="margin-top: 15px; font-style: italic;">"Empowering Infrastructure Excellence Through Digital Innovation"</p>
-        </footer>
+
+        <div class="footer">If a tool doesn't open, please refresh and try again.</div>
     </div>
 </body>
 </html>
+
+
