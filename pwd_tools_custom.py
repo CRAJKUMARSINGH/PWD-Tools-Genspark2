@@ -58,8 +58,8 @@ class PWDToolsCustomApp:
         )
         description_label.pack(pady=(0, 10))
 
-        # Welcome section - matching reference_app styling
-        welcome_frame = ctk.CTkFrame(self.root, fg_color=["#E6F3FF", "#f0f8f5"])
+        # Welcome section - aligned to green palette used across landing pages
+        welcome_frame = ctk.CTkFrame(self.root, fg_color=["#f0f8f5", "#e8f5e8"])
         welcome_frame.pack(fill="x", padx=10, pady=5)
 
         welcome_label = ctk.CTkLabel(
@@ -197,8 +197,8 @@ class PWDToolsCustomApp:
             width=60,
             height=30,
             font=ctk.CTkFont(size=9),
-            fg_color="#4CAF50",
-            hover_color="#45a049"
+            fg_color=["#2E8B57", "#3CB371"],
+            hover_color=["#228B22", "#2E8B57"]
         )
         help_btn.pack(side="left", padx=5)
 
@@ -209,8 +209,8 @@ class PWDToolsCustomApp:
             width=60,
             height=30,
             font=ctk.CTkFont(size=9),
-            fg_color="#2196F3",
-            hover_color="#1e88e5"
+            fg_color=["#2E8B57", "#3CB371"],
+            hover_color=["#228B22", "#2E8B57"]
         )
         about_btn.pack(side="left", padx=5)
 
