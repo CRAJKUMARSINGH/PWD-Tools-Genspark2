@@ -11,10 +11,14 @@ import os
 import sqlite3
 import webbrowser
 import tempfile
+import customtkinter as ctk
 
 class SimpleEMDRefundA4Tool:
     def __init__(self):
         """Initialize EMD Refund A4 tool"""
+        # CustomTkinter appearance
+        ctk.set_appearance_mode("light")
+        ctk.set_default_color_theme("blue")
         self.root = tk.Tk()
         self.root.title("EMD Refund - A4 Format (RPWA 28)")
         
@@ -102,9 +106,17 @@ class SimpleEMDRefundA4Tool:
         self.work_desc_entry = tk.Entry(main_frame, width=50, font=("Arial", 12))
         self.work_desc_entry.pack(pady=5)
         
-        # Generate button
-        generate_btn = tk.Button(main_frame, text="Generate A4 EMD Refund Receipt", command=self.generate_a4_receipt, 
-                               width=35, height=2, font=("Arial", 12, "bold"), bg="lightgreen")
+        # Generate button (CTkButton with app styling)
+        generate_btn = ctk.CTkButton(
+            main_frame,
+            text="Generate A4 EMD Refund Receipt",
+            command=self.generate_a4_receipt,
+            height=40,
+            corner_radius=12,
+            fg_color=["#2E8B57", "#3CB371"],
+            hover_color=["#228B22", "#2E8B57"],
+            font=ctk.CTkFont(size=12, weight="bold")
+        )
         generate_btn.pack(pady=15)
         
         # Results section
@@ -135,18 +147,45 @@ class SimpleEMDRefundA4Tool:
         """Create action buttons"""
         button_frame = tk.Frame(parent)
         button_frame.pack(fill="x", padx=5, pady=5)
-        
-        save_btn = tk.Button(button_frame, text="Save Receipt", command=self.save_receipt, 
-                           width=15, height=1, font=("Arial", 9), bg="lightblue")
-        save_btn.pack(side="left", padx=5)
-        
-        html_btn = tk.Button(button_frame, text="Open in Browser", command=self.open_in_browser, 
-                           width=18, height=1, font=("Arial", 9), bg="orange")
-        html_btn.pack(side="left", padx=5)
-        
-        clear_btn = tk.Button(button_frame, text="Clear Form", command=self.clear_form, 
-                            width=15, height=1, font=("Arial", 9), bg="lightgray")
-        clear_btn.pack(side="left", padx=5)
+
+        # 3-column grid layout
+        button_frame.grid_columnconfigure((0, 1, 2), weight=1)
+
+        save_btn = ctk.CTkButton(
+            button_frame,
+            text="Save Receipt",
+            command=self.save_receipt,
+            height=36,
+            corner_radius=12,
+            fg_color=["#2E8B57", "#3CB371"],
+            hover_color=["#228B22", "#2E8B57"],
+            font=ctk.CTkFont(size=11, weight="bold")
+        )
+        save_btn.grid(row=0, column=0, padx=5, pady=5, sticky="ew")
+
+        html_btn = ctk.CTkButton(
+            button_frame,
+            text="Open in Browser",
+            command=self.open_in_browser,
+            height=36,
+            corner_radius=12,
+            fg_color=["#2E8B57", "#3CB371"],
+            hover_color=["#228B22", "#2E8B57"],
+            font=ctk.CTkFont(size=11, weight="bold")
+        )
+        html_btn.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
+
+        clear_btn = ctk.CTkButton(
+            button_frame,
+            text="Clear Form",
+            command=self.clear_form,
+            height=36,
+            corner_radius=12,
+            fg_color=["#2E8B57", "#3CB371"],
+            hover_color=["#228B22", "#2E8B57"],
+            font=ctk.CTkFont(size=11, weight="bold")
+        )
+        clear_btn.grid(row=0, column=2, padx=5, pady=5, sticky="ew")
     
     def convert_number_to_words(self, num):
         """Convert number to words"""
