@@ -82,20 +82,12 @@ def create_tool_grid():
             "page": "pages/10_Stamp_Duty.py"
         },
         {
-            "name": "Hand Receipt",
-            "description": "Generate Hand Receipts",
-            "icon": "📜",
-            "category": "documentation",
+            "name": "Excel to EMD Web",
+            "description": "Web-based EMD conversion tool",
+            "icon": "🌐",
+            "category": "financial",
             "status": "internal",
-            "page": "pages/11_Hand_Receipt_Generator.py"
-        },
-        {
-            "name": "Main BAT Info",
-            "description": "Information about the main.bat launcher program",
-            "icon": "🖥️",
-            "category": "documentation",
-            "status": "internal",
-            "page": "pages/13_Main_BAT_Info.py"
+            "page": "pages/12_Excel_to_EMD_Web.py"
         }
     ]
     
@@ -161,27 +153,57 @@ def create_tool_grid():
             
             # Hidden button for navigation functionality
             if tool['status'] == 'internal':
-                if st.button(f"Navigate to {tool['name']}", key=f"tool-button-{i}", disabled=True, use_container_width=True):
+                if st.button(f"Navigate to {tool['name']}", key=f"tool-button-{i}", use_container_width=True):
                     st.switch_page(tool['page'])
             else:
-                if st.button(f"Open {tool['name']}", key=f"tool-button-{i}", disabled=True, use_container_width=True):
+                if st.button(f"Open {tool['name']}", key=f"tool-button-{i}", use_container_width=True):
                     if 'url' in tool:
                         st.markdown(f"<meta http-equiv='refresh' content='0; url={tool['url']}'>", unsafe_allow_html=True)
     
     # Add JavaScript to handle click events since Streamlit doesn't support it directly
     st.markdown("""
     <script>
-    // Add click event handlers to all tool cards
-    document.querySelectorAll('[class^="tool-card-ctk-"]').forEach((card, index) => {
-        card.addEventListener('click', () => {
-            // Find the corresponding hidden button
-            const button = document.getElementById(`tool-button-${index}`);
-            if (button) {
-                // Programmatically click the hidden button
-                button.click();
+    // Wait for DOM to be fully loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add click event handlers to all tool cards
+        document.querySelectorAll('[class^="tool-card-ctk-"]').forEach((card, index) => {
+            card.addEventListener('click', () => {
+                // Find the corresponding hidden button
+                const button = document.getElementById(`tool-button-${index}`);
+                if (button) {
+                    // Programmatically click the hidden button
+                    button.click();
+                }
+            });
+        });
+    });
+    
+    // Alternative approach using mutation observer for Streamlit's dynamic content
+    const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.addedNodes.length) {
+                document.querySelectorAll('[class^="tool-card-ctk-"]').forEach((card, index) => {
+                    // Remove existing listeners to prevent duplicates
+                    card.removeEventListener('click', cardClickHandler);
+                    // Add fresh click listener
+                    card.addEventListener('click', cardClickHandler);
+                });
             }
         });
     });
+    
+    // Click handler function
+    function cardClickHandler(event) {
+        const cardClass = event.currentTarget.className;
+        const index = cardClass.match(/tool-card-ctk-(\d+)/)[1];
+        const button = document.getElementById(`tool-button-${index}`);
+        if (button) {
+            button.click();
+        }
+    }
+    
+    // Start observing the document body for changes
+    observer.observe(document.body, { childList: true, subtree: true });
     </script>
     """, unsafe_allow_html=True)
 
@@ -236,6 +258,6 @@ def show_tool_stats():
     with col1:
         st.metric("🔗 External Tools", "2", "Connected")
     with col2:
-        st.metric("🏠 Internal Tools", "9", "Available")
+        st.metric("🏠 Internal Tools", "8", "Available")
     with col3:
         st.metric("📊 Total Categories", "5", "Organized")
