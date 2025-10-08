@@ -106,51 +106,106 @@ def create_tool_grid():
     # Create 3-column grid layout for tools
     col1, col2, col3 = st.columns(3)
     columns = [col1, col2, col3]
+
+    # Inject a single CSS block shared by all tool cards
+    st.markdown("""
+    <style>
+    .tool-card-ctk {
+        background: linear-gradient(135deg, #f0f8f5 0%, #e8f5e8 100%);
+        border: 2px solid #2E8B57;
+        border-radius: 15px;
+        padding: 20px;
+        margin: 10px 0;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        min-height: 180px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+    .tool-card-ctk:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+        border-color: #228B22;
+        background: linear-gradient(135deg, #e8f5e8 0%, #d4f0d4 100%);
+    }
+    .tool-icon-ctk {font-size: 2.5rem; margin-bottom: 10px;}
+    .tool-title-ctk {font-weight: bold; font-size: 1.1rem; margin-bottom: 8px; color: #2E8B57;}
+    .tool-desc-ctk {font-size: 0.9rem; color: #666; margin-bottom: 10px;}
+    .tool-status-ctk {font-size: 0.8rem; padding: 3px 8px; border-radius: 10px; display: inline-block;}
+    .tool-status-internal {background-color: #2E8B57; color: white;}
+    .tool-status-external {background-color: #4682B4; color: white;}
+    </style>
+    """, unsafe_allow_html=True)
     
-    # Create simple, reliable buttons without JavaScript
     for i, tool in enumerate(tools):
         with columns[i % 3]:
-            # Create a styled button for the tool
-            button_label = f"""
-            <div style="
-                background: linear-gradient(135deg, #f0f8f5 0%, #e8f5e8 100%);
-                border: 2px solid #2E8B57;
-                border-radius: 15px;
-                padding: 20px;
-                margin: 10px 0;
-                text-align: center;
-                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-                min-height: 180px;
-                display: flex;
-                flex-direction: column;
-                justify-content: space-between;
-                cursor: pointer;
-            ">
-                <div style="font-size: 2.5rem; margin-bottom: 10px;">{tool['icon']}</div>
-                <div style="font-weight: bold; font-size: 1.1rem; margin-bottom: 8px; color: #2E8B57;">{tool['name']}</div>
-                <div style="font-size: 0.9rem; color: #666; margin-bottom: 10px;">{tool['description']}</div>
-                <div style="font-size: 0.8rem; padding: 3px 8px; border-radius: 10px; display: inline-block; 
-                    background-color: {'#2E8B57' if tool['status'] == 'internal' else '#4682B4'}; 
-                    color: white;">
-                    {tool['status'].capitalize()}
-                </div>
+            st.markdown(f"""
+            <div class=\"tool-card-ctk\" onclick=\"document.getElementById('tool-button-{i}').click()\">
+                <div class=\"tool-icon-ctk\">{tool['icon']}</div>
+                <div class=\"tool-title-ctk\">{tool['name']}</div>
+                <div class=\"tool-desc-ctk\">{tool['description']}</div>
+                <div class=\"tool-status-ctk tool-status-{tool['status']}\">{tool['status'].capitalize()}</div>
             </div>
-            """
-            
-            # Create navigation buttons
+            """, unsafe_allow_html=True)
+
+            # Hidden button for navigation functionality
             if tool['status'] == 'internal':
-                # For internal tools, use switch_page
-                if st.button(button_label, key=f"tool-button-{i}", use_container_width=True, unsafe_allow_html=True):
+                if st.button(f"Navigate to {tool['name']}", key=f"tool-button-{i}", use_container_width=True):
                     st.switch_page(tool['page'])
             else:
-                # For external tools, use link_button if URL exists
-                if 'url' in tool and tool['url']:
-                    st.link_button(button_label, tool['url'], use_container_width=True, unsafe_allow_html=True)
-                else:
-                    # Fallback for external tools without URL
-                    if st.button(button_label, key=f"tool-button-{i}", use_container_width=True, unsafe_allow_html=True):
-                        st.switch_page(tool['page'])
+                if st.button(f"Open {tool['name']}", key=f"tool-button-{i}", use_container_width=True):
+                    if 'url' in tool:
+                        st.markdown(f"<meta http-equiv='refresh' content='0; url={tool['url']}'>", unsafe_allow_html=True)
+
+    # Add JavaScript to handle click events since Streamlit doesn't support it directly
+    st.markdown("""
+    <script>
+    // Wait for DOM to be fully loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add click event handlers to all tool cards
+        document.querySelectorAll('.tool-card-ctk').forEach((card, index) => {
+            card.addEventListener('click', () => {
+                // Find the corresponding hidden button
+                const button = document.getElementById(`tool-button-${index}`);
+                if (button) {
+                    // Programmatically click the hidden button
+                    button.click();
+                }
+            });
+        });
+    });
     
+    // Alternative approach using mutation observer for Streamlit's dynamic content
+    const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.addedNodes.length) {
+                document.querySelectorAll('.tool-card-ctk').forEach((card, index) => {
+                    // Remove existing listeners to prevent duplicates
+                    card.removeEventListener('click', cardClickHandler);
+                    // Add fresh click listener
+                    card.addEventListener('click', cardClickHandler);
+                });
+            }
+        });
+    });
+    
+    // Click handler function
+    function cardClickHandler(event) {
+        const cards = Array.from(document.querySelectorAll('.tool-card-ctk'));
+        const index = cards.indexOf(event.currentTarget);
+        const button = document.getElementById(`tool-button-${index}`);
+        if (button) {
+            button.click();
+        }
+    }
+    
+    // Start observing the document body for changes
+    observer.observe(document.body, { childList: true, subtree: true });
+    </script>
+    """, unsafe_allow_html=True)
 
 def create_tool_button(tool, colors):
     """Create individual tool button with enhanced styling"""

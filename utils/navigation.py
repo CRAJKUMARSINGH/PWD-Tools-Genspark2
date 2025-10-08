@@ -28,8 +28,7 @@ def create_tool_navigation():
         "💳 EMD Refund": "pages/07_EMD_Refund.py",
         "📈 Financial Progress": "pages/08_Financial_Progress.py",
         "🛡️ Security Refund": "pages/09_Security_Refund.py",
-        ".stamp Duty": "pages/10_Stamp_Duty.py",
-        "🧾 Hand Receipt Generator": "pages/11_Hand_Receipt_Generator.py"
+        "⚖️ Stamp Duty": "pages/10_Stamp_Duty.py"
     }
     
     for tool_name, tool_page in tools.items():

@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=210mm, height=297mm">
     <title>Hand Receipt (RPWA 28)</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- html2pdf is lazy-loaded on demand to reduce initial load time -->
     <style>
         body {
             font-family: sans-serif;
@@ -290,6 +290,26 @@
     <div class="container" id="receipt-content"></div>
 
     <script>
+        // Lazy-load html2pdf only when needed
+        function loadHtml2Pdf() {
+            return new Promise((resolve, reject) => {
+                if (window.html2pdf) { resolve(); return; }
+                const script = document.createElement('script');
+                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+                script.onload = () => resolve();
+                script.onerror = () => reject(new Error('Failed to load html2pdf'));
+                document.head.appendChild(script);
+            });
+        }
+
+        function escapeHtml(str) {
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
         function convertNumberToWords(num) {
             const ones = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine"];
             const tens = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
@@ -338,10 +358,13 @@
         }
 
         function generateReceiptHTML(payee, amount, work) {
-            const amountInWords = convertNumberToWords(parseFloat(amount));
+            const safePayee = escapeHtml(payee);
+            const safeWork = escapeHtml(work);
+            const numericAmount = Number(amount);
+            const amountInWords = convertNumberToWords(Number.isFinite(numericAmount) ? numericAmount : 0);
             return `
                 <div class="header">
-                    <h2>Payable to: - ${payee} ( Electric Contractor)</h2>
+                    <h2>Payable to: - ${safePayee} ( Electric Contractor)</h2>
 <h2>HAND RECEIPT (RPWA 28)</h2>
 <p>(Referred to in PWF&A Rules 418,424,436 & 438)</p>
 <p>Division - PWD Electric Division, Udaipur</p>
@@ -349,10 +372,10 @@
 <div class="details">
 <p>(1)Cash Book Voucher No. &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Date &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>
 <p>(2)Cheque No. and Date &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>
-<p>(3) Pay for ECS Rs.${amount}/- (Rupees <span class="amount-words">${amountInWords} only</span>)</p>
+<p>(3) Pay for ECS Rs.${Number.isFinite(numericAmount) ? numericAmount : 0}/- (Rupees <span class="amount-words">${amountInWords} only</span>)</p>
                 <p>(4) Paid by me</p>
-                <p>(5) Received from The Executive Engineer PWD Electric Division, Udaipur the sum of Rs. ${amount}/- (Rupees <span class="amount-words">${amountInWords} only</span>)</p>
-                <p> Name of work for which payment is made: <span class="input-field">${work}</span></p>
+                <p>(5) Received from The Executive Engineer PWD Electric Division, Udaipur the sum of Rs. ${Number.isFinite(numericAmount) ? numericAmount : 0}/- (Rupees <span class="amount-words">${amountInWords} only</span>)</p>
+                <p> Name of work for which payment is made: <span class="input-field">${safeWork}</span></p>
                 <p> Chargeable to Head:- 8443 [EMD-Refund] </p>   
                  <table class="signature-area">
                     <tr>
@@ -440,18 +463,24 @@
             }
         });
         
-        function downloadPDF(payee, amount) {
+        async function downloadPDF(payee, amount) {
+            try {
+                await loadHtml2Pdf();
+            } catch (e) {
+                alert('PDF library failed to load. Please try again.');
+                return;
+            }
             const element = document.getElementById('receipt-content');
+            const safePayee = String(payee || '').replace(/\s+/g, '_').replace(/[^A-Za-z0-9_.-]/g, '');
+            const filename = `EMD_Refund_Receipt_${safePayee}_${Number(amount) || 0}.pdf`;
             const opt = {
                 margin: 1,
-                filename: `EMD_Refund_Receipt_${payee.replace(/\s+/g, '_')}_${amount}.pdf`,
+                filename,
                 image: { type: 'jpeg', quality: 0.98 },
                 html2canvas: { scale: 2, useCORS: true },
                 jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' },
                 pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
             };
-            
-            // Generate and download PDF
             html2pdf().set(opt).from(element).save();
         }
     </script>

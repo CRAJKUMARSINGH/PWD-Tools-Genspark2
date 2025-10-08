@@ -341,6 +341,14 @@
         </div>
     </div>
     <script>
+        function escapeHtml(str) {
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
         let billCount = 1;
         const maxBills = 10;
 
@@ -472,10 +480,10 @@
             depositDetails.forEach(detail => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td>${detail.type}</td>
-                    <td>${detail.mb}</td>
-                    <td>${detail.sd}</td>
-                    <td>${detail.amount ? '₹' + detail.amount : ''}</td>
+                    <td>${escapeHtml(detail.type)}</td>
+                    <td>${escapeHtml(detail.mb)}</td>
+                    <td>${escapeHtml(detail.sd)}</td>
+                    <td>${detail.amount ? '₹' + escapeHtml(detail.amount) : ''}</td>
                 `;
                 resultDepositRows.appendChild(row);
             });
