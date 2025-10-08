@@ -3,7 +3,7 @@ Streamlit Cloud deployment entry point for PWD Tools Hub.
 This file is used by Streamlit Cloud as the default entry point for deployment.
 """
 
-import app1
+import app
 
 # Run the main application
-app1.main()
+app.main()
