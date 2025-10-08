@@ -63,20 +63,7 @@ def main():
     # Create the main tool grid with CTkButton styling
     create_tool_grid()
     
-    # Add JavaScript for smoother interactions
-    st.markdown("""
-    <script>
-    // Add smooth hover transitions to all tool cards
-    document.addEventListener('DOMContentLoaded', function() {
-        const toolCards = document.querySelectorAll('.tool-card-ctk');
-        toolCards.forEach(card => {
-            card.addEventListener('mouseenter', function() {
-                this.style.transition = 'all 0.3s ease';
-            });
-        });
-    });
-    </script>
-    """, unsafe_allow_html=True)
+    # Removed JavaScript for better performance
     
     # Show credits at bottom
     st.markdown("---")

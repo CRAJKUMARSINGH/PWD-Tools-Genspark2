@@ -218,14 +218,6 @@ def main():
             </script>
             """, unsafe_allow_html=True)
 
-# Navigation with magenta button
-def create_back_button():
-    """Create a back to home button with magenta color"""
-    st.markdown('<div style="text-align: center; margin: 20px 0;">', unsafe_allow_html=True)
-    if st.button("🏠 Back to Home", key="back_home", type="secondary"):
-        st.switch_page("app.py")
-    st.markdown('</div>', unsafe_allow_html=True)
-
 # Create navigation
 create_back_button()
 
