@@ -23,6 +23,52 @@ def sanitize_filename(name: str) -> str:
     safe = re.sub(r"[^A-Za-z0-9._-]+", "_", name.strip())
     return safe[:80] or "receipt"
 
+def convert_number_to_words(num):
+    """Convert a number to its word representation"""
+    ones = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine"]
+    tens = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"]
+    teens = ["Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"]
+    crore = " Crore "
+    lakh = " Lakh "
+    thousand = " Thousand "
+    hundred = " Hundred "
+    and_word = " and "
+
+    if num == 0: 
+        return "Zero"
+
+    words = ""
+
+    if int(num / 10000000):
+        words += convert_number_to_words(int(num / 10000000)) + crore
+        num %= 10000000
+
+    if int(num / 100000):
+        words += convert_number_to_words(int(num / 100000)) + lakh
+        num %= 100000
+
+    if int(num / 1000):
+        words += convert_number_to_words(int(num / 1000)) + thousand
+        num %= 1000
+
+    if int(num / 100):
+        words += convert_number_to_words(int(num / 100)) + hundred
+        num %= 100
+
+    if num > 0:
+        if words != "": 
+            words += and_word
+        if num < 10: 
+            words += ones[num]
+        elif num < 20: 
+            words += teens[num - 10]
+        else:
+            words += tens[int(num / 10)]
+            if num % 10 > 0: 
+                words += " " + ones[num % 10]
+
+    return words
+
 def build_receipt_html(payee: str, amount_value: float, work: str) -> str:
     # Convert amount to float to ensure it's a number
     try:
@@ -32,159 +78,531 @@ def build_receipt_html(payee: str, amount_value: float, work: str) -> str:
         amount_float = 0.0
         amount_str = "0.00"
     
-    # Escape single quotes in strings for JavaScript
-    payee_js = payee.replace("'", r"\'")
-    work_js = work.replace("'", r"\'")
+    # Convert amount to words
+    amount_in_words = convert_number_to_words(amount_float)
     
-    html = f"""
+    # Read the EMD Refund HTML template and modify it for this specific receipt
+    try:
+        with open("static/html/EmdRefund.html", "r", encoding="utf-8") as f:
+            html_template = f.read()
+            
+        # Replace the interactive form with static content
+        # Find the receipt-content div and replace it with our static content
+        start_marker = '<div class="container" id="receipt-content">'
+        end_marker = '<script>'
+        
+        # Find the positions
+        start_pos = html_template.find(start_marker)
+        end_pos = html_template.find(end_marker)
+        
+        if start_pos != -1 and end_pos != -1:
+            # Extract the parts before and after the receipt content
+            before_content = html_template[:start_pos + len(start_marker)]
+            after_content = html_template[end_pos:]
+            
+            # Create the static receipt content
+            receipt_content = f"""
+        <div class="header">
+            <h2>Payable to: - {payee} ( Electric Contractor)</h2>
+            <h2>HAND RECEIPT (RPWA 28)</h2>
+            <p>(Referred to in PWF&A Rules 418,424,436 & 438)</p>
+            <p>Division - PWD Electric Division, Udaipur</p>
+        </div>
+        <div class="details">
+            <p>(1)Cash Book Voucher No. &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Date &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>
+            <p>(2)Cheque No. and Date &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>
+            <p>(3) Pay for ECS Rs.{amount_str}/- (Rupees <span id="amount-words" class="amount-words">{amount_in_words} only</span>)</p>
+            <p>(4) Paid by me</p>
+            <p>(5) Received from The Executive Engineer PWD Electric Division, Udaipur the sum of Rs. {amount_str}/- (Rupees <span id="amount-words" class="amount-words">{amount_in_words} only</span>)</p>
+            <p> Name of work for which payment is made: <span id="work-name" class="input-field">{work}</span></p>
+            <p> Chargeable to Head:- 8443 [EMD-Refund] </p>   
+            <table class="signature-area">
+                <tr>
+                    <td>Witness</td>
+                    <td>Stamp</td>
+                    <td>Signature of payee</td>
+                </tr>
+                <tr>
+                    <td>Cash Book No. &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Page No. &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                    <td></td>
+                    <td></td>
+                </tr>
+            </table>
+            <table class="offices">
+                <tr>
+                    <td>For use in the Divisional Office</td>
+                    <td>For use in the Accountant General's office</td>
+                </tr>
+                <tr>
+                    <td>Checked</td>
+                    <td>Audited/Reviewed</td>
+                </tr>
+                <tr>
+                    <td>Accounts Clerk</td>
+                    <td>
+                        DA &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Auditor &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Supdt. &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; G.O.
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="bottom-left-box">
+            <p class="blue-text"> Passed for Rs. {amount_str}</p>
+            <p class="blue-text"> In Words Rupees: {amount_in_words} Only</p>
+            <p class="blue-text"> Chargeable to Head:- 8443 [EMD-Refund]</p>
+        </div>
+"""
+            
+            # Combine everything
+            final_html = before_content + receipt_content + after_content
+            return final_html
+        else:
+            # Fallback to creating a complete HTML document
+            html = f"""
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Hand Receipt (RPWA 28)</title>
-  <style>
-    body {{ font-family: Arial, sans-serif; margin: 0; }}
-    .container {{ width: 100%; max-width: 900px; margin: 20px auto; border: 1px solid #e1e8e3; padding: 24px; box-sizing: border-box; background: #fff; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); }}
-    .header {{ text-align: center; margin-bottom: 10px; color: #2E8B57; }}
-    .details {{ margin-bottom: 1px; }}
-    .amount-words {{ font-style: italic; }}
-    .signature-area, .offices {{ width: 100%; border-collapse: collapse; margin-top: 20px; }}
-    .signature-area td, .signature-area th, .offices td, .offices th {{ border: 1px solid #ccc; padding: 5px; text-align: left; }}
-    .offices td, .offices th {{ border-color: #000; word-wrap: break-word; }}
-    .input-field {{ border-bottom: 1px dotted #ccc; padding: 3px; width: calc(100% - 10px); display: inline-block; }}
-    .bottom-left-box {{ position: relative; border: 2px solid black; padding: 10px; width: 300px; text-align: left; margin-top: 12px; }}
-    .bottom-left-box p {{ margin: 3px 0; }}
-    .blue-text {{ color: blue; }}
-    @media print {{
-      @page {{ size: A4 portrait; margin: 0; }}
-      body {{ margin: 0; padding: 0; }}
-      .container {{ border: none; width: 210mm; min-height: 297mm; margin: 0; padding: 20mm; box-sizing: border-box; }}
-      .input-field {{ border: none; }}
-    }}
-  </style>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=210mm, height=297mm">
+    <title>Hand Receipt (RPWA 28)</title>
+    <style>
+        body {{
+            font-family: sans-serif;
+            margin: 0;
+        }}
+
+        .container {{
+            width: 210mm;
+            height: 297mm;
+            margin: 0 auto;
+            border: 2px solid #ccc;
+            padding: 20px;
+            box-sizing: border-box;
+            position: relative;
+            page-break-after: avoid;
+        }}
+
+        .header {{
+            text-align: center;
+            margin-bottom: 2px;
+        }}
+
+        .details {{
+            margin-bottom: 1px;
+        }}
+
+        .amount-words {{
+            font-style: italic;
+        }}
+
+        .signature-area {{
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }}
+
+        .signature-area td, .signature-area th {{
+            border: 1px solid #ccc;
+            padding: 5px;
+            text-align: left;
+        }}
+
+        .offices {{
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }}
+
+        .offices td, .offices th {{
+            border: 1px solid black;
+            padding: 5px;
+            text-align: left;
+            word-wrap: break-word;
+        }}
+
+        .input-field {{
+            border-bottom: 1px dotted #ccc;
+            padding: 3px;
+            width: calc(100% - 10px);
+            display: inline-block;
+        }}
+
+        @media print {{
+            html, body {{
+                width: 210mm;
+                max-width: 210mm;
+                height: 297mm;
+                margin: 0;
+                padding: 0;
+                overflow: hidden;
+            }}
+            .container {{
+                border: none;
+                width: 210mm;
+                height: 297mm;
+                min-height: 297mm;
+                margin: 0;
+                padding: 20mm;
+                page-break-after: never;
+                page-break-inside: avoid;
+                page-break-before: avoid;
+                box-sizing: border-box;
+                overflow: hidden;
+                position: relative;
+            }}
+            @page {{
+                size: A4 portrait;
+                margin: 0;
+                page-break-after: never;
+            }}
+            body {{
+                margin: 0;
+                padding: 0;
+                height: 100%;
+                overflow: hidden;
+            }}
+            /* Ensure only the first page is printed */
+            .container:not(:first-child) {{
+                display: none;
+            }}
+            
+            /* Prevent any additional content from appearing */
+            body::after {{
+                display: none !important;
+            }}
+            
+            /* Ensure the container is visible for printing */
+            .container {{
+                display: block !important;
+            }}
+            
+            /* Prevent overflow on print */
+            * {{
+                overflow: hidden !important;
+                word-wrap: break-word !important;
+                overflow-wrap: break-word !important;
+            }}
+            
+            /* Force all content to stay within page boundaries */
+            * {{
+                max-height: inherit;
+            }}
+            
+            /* Ensure tables don't break across pages */
+            table {{
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }}
+            
+            /* Ensure the bottom-left box stays within bounds */
+            .bottom-left-box {{
+                page-break-inside: avoid;
+                break-inside: avoid;
+                position: absolute;
+                bottom: 40mm;
+                left: 40mm;
+                border: 2px solid black;
+                padding: 10px;
+                width: calc(210mm - 80mm);
+                max-width: calc(210mm - 80mm);
+                text-align: left;
+                height: auto;
+                box-sizing: border-box;
+            }}
+        }}
+
+        .bottom-left-box {{
+            position: absolute;
+            bottom: 40mm;
+            left: 40mm;
+            border: 2px solid black;
+            padding: 10px;
+            width: 300px;
+            text-align: left;
+            height: auto;
+        }}
+
+        .bottom-left-box p {{
+            margin: 3px 0;
+        }}
+
+        .bottom-left-box .blue-text {{
+            color: blue;
+        }}
+    </style>
 </head>
+
 <body>
-  <div class="container">
-    <div id="receipt-content">
-      <div class="header">
-        <h2>Payable to: - {payee} (Electric Contractor)</h2>
-        <h2>HAND RECEIPT (RPWA 28)</h2>
-        <p>(Referred to in PWF&A Rules 418,424,436 & 438)</p>
-        <p>Division - PWD Electric Division, Udaipur</p>
-      </div>
-      <div class="details">
-        <p>(1)Cash Book Voucher No. &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Date &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>
-        <p>(2)Cheque No. and Date &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>
-        <p>(3) Pay for ECS Rs. {amount_str}/- (Rupees <span id="amount-words" class="amount-words"></span>)</p>
-        <p>(4) Paid by me</p>
-        <p>(5) Received from The Executive Engineer PWD Electric Division, Udaipur the sum of Rs. {amount_str}/- (Rupees <span id="amount-words-2" class="amount-words"></span>)</p>
-        <p>Name of work for which payment is made: <span id="work-name" class="input-field">{work}</span></p>
-        <p>Chargeable to Head:- 8443 [EMD-Refund]</p>
-        <table class="signature-area">
-          <tr><td>Witness</td><td>Stamp</td><td>Signature of payee</td></tr>
-          <tr><td>Cash Book No. &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Page No. &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td></td><td></td></tr>
-        </table>
-        <table class="offices">
-          <tr><td>For use in the Divisional Office</td><td>For use in the Accountant General's office</td></tr>
-          <tr><td>Checked</td><td>Audited/Reviewed</td></tr>
-          <tr><td>Accounts Clerk</td><td>DA &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Auditor &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Supdt. &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;G.O.</td></tr>
-        </table>
-      </div>
-      <div class="bottom-left-box">
-        <p class="blue-text">Passed for Rs. {amount_str}</p>
-        <p class="blue-text" id="amount-words-3">In Words Rupees: </p>
-        <p class="blue-text">Chargeable to Head:- 8443 [EMD-Refund]</p>
-        <div class="seal">
-          <p>Ar.</p>
-          <p>D.A.</p>
-          <p>E.E.</p>
+    <div class="container" id="receipt-content">
+        <div class="header">
+            <h2>Payable to: - {payee} ( Electric Contractor)</h2>
+            <h2>HAND RECEIPT (RPWA 28)</h2>
+            <p>(Referred to in PWF&A Rules 418,424,436 & 438)</p>
+            <p>Division - PWD Electric Division, Udaipur</p>
         </div>
-      </div>
+        <div class="details">
+            <p>(1)Cash Book Voucher No. &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Date &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>
+            <p>(2)Cheque No. and Date &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>
+            <p>(3) Pay for ECS Rs.{amount_str}/- (Rupees <span class="amount-words">{amount_in_words} only</span>)</p>
+            <p>(4) Paid by me</p>
+            <p>(5) Received from The Executive Engineer PWD Electric Division, Udaipur the sum of Rs. {amount_str}/- (Rupees <span class="amount-words">{amount_in_words} only</span>)</p>
+            <p> Name of work for which payment is made: <span class="input-field">{work}</span></p>
+            <p> Chargeable to Head:- 8443 [EMD-Refund] </p>   
+            <table class="signature-area">
+                <tr>
+                    <td>Witness</td>
+                    <td>Stamp</td>
+                    <td>Signature of payee</td>
+                </tr>
+                <tr>
+                    <td>Cash Book No. &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Page No. &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                    <td></td>
+                    <td></td>
+                </tr>
+            </table>
+            <table class="offices">
+                <tr>
+                    <td>For use in the Divisional Office</td>
+                    <td>For use in the Accountant General's office</td>
+                </tr>
+                <tr>
+                    <td>Checked</td>
+                    <td>Audited/Reviewed</td>
+                </tr>
+                <tr>
+                    <td>Accounts Clerk</td>
+                    <td>
+                        DA &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Auditor &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Supdt. &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; G.O.
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="bottom-left-box">
+            <p class="blue-text"> Passed for Rs. {amount_str}</p>
+            <p class="blue-text"> In Words Rupees: {amount_in_words} Only</p>
+            <p class="blue-text"> Chargeable to Head:- 8443 [EMD-Refund]</p>
+        </div>
     </div>
-  </div>
-  <script>
-    function convertNumberToWords(num) {{
-      const ones = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine"];
-      const tens = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
-      const teens = ["Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"];
-      const crore = " Crore ";
-      const lakh = " Lakh ";
-      const thousand = " Thousand ";
-      const hundred = " Hundred ";
-      const andWord = " and ";
-      
-      if (!num || isNaN(num)) return "Zero";
-      
-      // Remove any commas and convert to number
-      num = parseFloat(num.toString().replace(/,/g, ''));
-      if (isNaN(num)) return "Zero";
-      
-      // Round to 2 decimal places and get the integer part
-      const rupees = Math.floor(num);
-      const paise = Math.round((num - rupees) * 100);
-      
-      let words = "";
-      
-      // Process rupees part
-      if (rupees > 0) {{
-        let r = rupees;
-        if (Math.floor(r / 10000000)) {{ words += convertNumberToWords(Math.floor(r / 10000000)) + crore; r %= 10000000; }}
-        if (Math.floor(r / 100000)) {{ words += convertNumberToWords(Math.floor(r / 100000)) + lakh; r %= 100000; }}
-        if (Math.floor(r / 1000)) {{ words += convertNumberToWords(Math.floor(r / 1000)) + thousand; r %= 1000; }}
-        if (Math.floor(r / 100)) {{ words += convertNumberToWords(Math.floor(r / 100)) + hundred; r %= 100; }}
-        if (r > 0) {{
-          if (words !== "") words += andWord;
-          if (r < 10) words += ones[r];
-          else if (r < 20) words += teens[r - 10];
-          else {{ 
-            words += tens[Math.floor(r / 10)]; 
-            if (r % 10 > 0) words += " " + ones[r % 10]; 
-          }}
-        }}
-        words += " Rupees";
-      }}
-      
-      // Process paise part
-      if (paise > 0) {{
-        if (words !== "") words += " and ";
-        if (paise < 10) words += ones[paise];
-        else if (paise < 20) words += teens[paise - 10];
-        else {{ 
-          words += tens[Math.floor(paise / 10)]; 
-          if (paise % 10 > 0) words += " " + ones[paise % 10]; 
-        }}
-        words += " Paise";
-      }}
-      
-      return words || "Zero Rupees";
-    }}
-    
-    // Format the amount with commas
-    function formatAmount(amount) {{
-      return amount.toString().replace(/\B(?=(\d{{3}})+(?!\d))/g, ",");
-    }}
-    
-    // Update all amount in words placeholders
-    document.addEventListener('DOMContentLoaded', function() {{
-      const amount = {amount_float};
-      const amountInWords = convertNumberToWords(amount);
-      document.querySelectorAll('.amount-words').forEach(el => {{
-        el.textContent = amountInWords + ' only';
-      }});
-      document.getElementById('amount-words-3').textContent = 'In Words Rupees: ' + amountInWords + ' Only';
-    }});
-  </script>
+
+    <script>
+        window.onload = function() {{
+            // Optionally trigger print when the page loads
+            // window.print();
+        }};
+    </script>
 </body>
 </html>
-""".format(
-        payee=payee_js,
-        work=work_js,
-        amount_float=amount_float,
-        amount_str=amount_str
-    )
-    
-    return html
+"""
+            return html
+    except FileNotFoundError:
+        # If the template file doesn't exist, create a basic HTML receipt
+        html = f"""
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=210mm, height=297mm">
+    <title>Hand Receipt (RPWA 28)</title>
+    <style>
+        body {{
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            max-width: 210mm;
+            overflow-x: hidden;
+        }}
+        .container {{
+            width: 210mm;
+            min-height: 297mm;
+            border: 1px solid #000;
+            padding: 20px;
+            margin: 0 auto;
+            box-sizing: border-box;
+        }}
+        .header {{
+            text-align: center;
+            margin-bottom: 20px;
+        }}
+        .details p {{
+            margin: 5px 0;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }}
+        .signature-area, .offices {{
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            table-layout: fixed;
+        }}
+        .signature-area td, .signature-area th, .offices td, .offices th {{
+            border: 1px solid #000;
+            padding: 5px;
+            text-align: left;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }}
+        .input-field {{
+            border-bottom: 1px dotted #000;
+            display: inline-block;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }}
+        .amount-words {{
+            font-style: italic;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }}
+        .bottom-left-box {{
+            border: 2px solid #000;
+            padding: 10px;
+            width: 300px;
+            margin-top: 20px;
+            max-width: calc(210mm - 80mm);
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }}
+        .blue-text {{
+            color: blue;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }}
+        @media print {{
+            html, body {{
+                width: 210mm;
+                max-width: 210mm;
+                height: 297mm;
+                margin: 0;
+                padding: 0;
+                overflow: hidden;
+            }}
+            .container {{
+                border: none;
+                width: 210mm;
+                height: 297mm;
+                min-height: 297mm;
+                margin: 0;
+                padding: 20mm;
+                page-break-after: never;
+                page-break-inside: avoid;
+                page-break-before: avoid;
+                box-sizing: border-box;
+                overflow: hidden;
+                position: relative;
+            }}
+            @page {{
+                size: A4 portrait;
+                margin: 0;
+                page-break-after: never;
+            }}
+            body {{
+                margin: 0;
+                padding: 0;
+                height: 100%;
+                overflow: hidden;
+            }}
+            /* Ensure only the first page is printed */
+            .container:not(:first-child) {{
+                display: none;
+            }}
+            
+            /* Prevent any additional content from appearing */
+            body::after {{
+                display: none !important;
+            }}
+            
+            /* Ensure the container is visible for printing */
+            .container {{
+                display: block !important;
+            }}
+            
+            /* Prevent overflow on print */
+            * {{
+                overflow: hidden !important;
+                word-wrap: break-word !important;
+                overflow-wrap: break-word !important;
+            }}
+            
+            /* Force all content to stay within page boundaries */
+            * {{
+                max-height: inherit;
+            }}
+            
+            /* Ensure tables don't break across pages */
+            table {{
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }}
+            
+            /* Ensure the bottom-left box stays within bounds */
+            .bottom-left-box {{
+                page-break-inside: avoid;
+                break-inside: avoid;
+                position: absolute;
+                bottom: 40mm;
+                left: 40mm;
+                border: 2px solid black;
+                padding: 10px;
+                width: calc(210mm - 80mm);
+                max-width: calc(210mm - 80mm);
+                text-align: left;
+                height: auto;
+                box-sizing: border-box;
+            }}
+        }}
+        /* Additional styles to prevent text overflow */
+        p, h1, h2, h3, h4, h5, h6, span, div {{
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            max-width: 100%;
+        }}
+        
+        table {{
+            table-layout: fixed;
+            width: 100%;
+        }}
+        
+        td, th {{
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>Payable to: - {payee} (Electric Contractor)</h2>
+            <h2>HAND RECEIPT (RPWA 28)</h2>
+            <p>(Referred to in PWF&A Rules 418,424,436 & 438)</p>
+            <p>Division - PWD Electric Division, Udaipur</p>
+        </div>
+        <div class="details">
+            <p>(1)Cash Book Voucher No. &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Date &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>
+            <p>(2)Cheque No. and Date &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>
+            <p>(3) Pay for ECS Rs.{amount_str}/- (Rupees <span class="amount-words">{amount_in_words} only</span>)</p>
+            <p>(4) Paid by me</p>
+            <p>(5) Received from The Executive Engineer PWD Electric Division, Udaipur the sum of Rs. {amount_str}/- (Rupees <span class="amount-words">{amount_in_words} only</span>)</p>
+            <p>Name of work for which payment is made: <span class="input-field">{work}</span></p>
+            <p>Chargeable to Head:- 8443 [EMD-Refund]</p>
+            <table class="signature-area">
+                <tr><th>Witness</th><th>Stamp</th><th>Signature of payee</th></tr>
+                <tr><td>Cash Book No. &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Page No. &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td></td><td></td></tr>
+            </table>
+            <table class="offices">
+                <tr><td>For use in the Divisional Office</td><td>For use in the Accountant General's office</td></tr>
+                <tr><td>Checked</td><td>Audited/Reviewed</td></tr>
+                <tr><td>Accounts Clerk</td><td>DA &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Auditor &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Supdt. &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;G.O.</td></tr>
+            </table>
+        </div>
+        <div class="bottom-left-box">
+            <p class="blue-text">Passed for Rs. {amount_str}</p>
+            <p class="blue-text">In Words Rupees: {amount_in_words} Only</p>
+            <p class="blue-text">Chargeable to Head:- 8443 [EMD-Refund]</p>
+        </div>
+    </div>
+</body>
+</html>
+"""
+        return html
 
 def main():
     st.markdown("#### Generate Hand Receipts (RPWA 28) from Excel")

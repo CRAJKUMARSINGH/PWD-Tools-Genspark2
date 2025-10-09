@@ -2,7 +2,7 @@ import streamlit as st
 from utils.branding import get_tool_colors
 
 def create_tool_grid():
-    """Create the main grid of tool buttons with enhanced styling using a 3-column layout"""
+    """Create the main grid of tool buttons with enhanced CTkButton styling using a 3-column layout"""
     
     # Tool definitions with categories and external links
     # Updated to match actual available pages
@@ -107,34 +107,54 @@ def create_tool_grid():
     col1, col2, col3 = st.columns(3)
     columns = [col1, col2, col3]
     
-    # Create simple, reliable buttons without JavaScript
+    # Create CTkButton styled buttons with magenta color emphasis
     for i, tool in enumerate(tools):
         with columns[i % 3]:
-            # Create a styled button for the tool
+            # Create a CTkButton styled button for the tool with magenta emphasis
             button_label = f"""
             <div style="
-                background: linear-gradient(135deg, #f0f8f5 0%, #e8f5e8 100%);
-                border: 2px solid #2E8B57;
-                border-radius: 15px;
+                background: linear-gradient(135deg, #f8f0fa 0%, #fce4ec 100%);
+                border: 2px solid #FF00FF;
+                border-radius: 12px;
                 padding: 20px;
                 margin: 10px 0;
                 text-align: center;
-                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
                 min-height: 180px;
                 display: flex;
                 flex-direction: column;
                 justify-content: space-between;
                 cursor: pointer;
+                transition: all 0.3s ease;
             ">
                 <div style="font-size: 2.5rem; margin-bottom: 10px;">{tool['icon']}</div>
-                <div style="font-weight: bold; font-size: 1.1rem; margin-bottom: 8px; color: #2E8B57;">{tool['name']}</div>
+                <div style="font-weight: bold; font-size: 1.1rem; margin-bottom: 8px; color: #C71585;">{tool['name']}</div>
                 <div style="font-size: 0.9rem; color: #666; margin-bottom: 10px;">{tool['description']}</div>
                 <div style="font-size: 0.8rem; padding: 3px 8px; border-radius: 10px; display: inline-block; 
-                    background-color: {'#2E8B57' if tool['status'] == 'internal' else '#4682B4'}; 
+                    background-color: {'#C71585' if tool['status'] == 'internal' else '#9B0E66'}; 
                     color: white;">
                     {tool['status'].capitalize()}
                 </div>
             </div>
+            """
+            
+            # Add hover effect for CTkButton styling with magenta emphasis
+            hover_script = f"""
+            <script>
+            const button{i} = document.currentScript.parentElement;
+            if (button{i}) {{
+                button{i}.addEventListener('mouseenter', function() {{
+                    this.style.transform = 'translateY(-3px)';
+                    this.style.boxShadow = '0 6px 12px rgba(199, 21, 133, 0.3)';
+                    this.style.borderColor = '#C71585';
+                }});
+                button{i}.addEventListener('mouseleave', function() {{
+                    this.style.transform = 'translateY(0)';
+                    this.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.2)';
+                    this.style.borderColor = '#FF00FF';
+                }});
+            }}
+            </script>
             """
             
             # Create navigation buttons
@@ -142,6 +162,7 @@ def create_tool_grid():
                 # For internal tools, use switch_page
                 if st.button(button_label, key=f"tool-button-{i}", use_container_width=True, unsafe_allow_html=True):
                     st.switch_page(tool['page'])
+                st.markdown(hover_script, unsafe_allow_html=True)
             else:
                 # For external tools, use link_button if URL exists
                 if 'url' in tool and tool['url']:
@@ -150,41 +171,8 @@ def create_tool_grid():
                     # Fallback for external tools without URL
                     if st.button(button_label, key=f"tool-button-{i}", use_container_width=True, unsafe_allow_html=True):
                         st.switch_page(tool['page'])
-    
+                st.markdown(hover_script, unsafe_allow_html=True)
 
-def create_tool_button(tool, colors):
-    """Create individual tool button with enhanced styling"""
-    
-    # Get color for the category or use default
-    category_info = colors.get(tool["category"], {"bg": "#f0f8f5", "border": "#2E8B57", "icon": "🛠️"})
-    status_indicator = "🔗 External" if tool["status"] == "external" else "🏠 Internal"
-    status_color = "#DC143C" if tool["status"] == "external" else "#2E8B57"
-    
-    # Create enhanced button container with design closer to repo
-    button_html = f"""
-    <div class="tool-button">
-        <div style="font-size: 3rem; margin-bottom: 15px;">{tool['icon']}</div>
-        <div style="font-size: 1.2rem; font-weight: bold; color: #2E8B57; margin-bottom: 10px;">
-            {tool['name']}
-        </div>
-        <div style="font-size: 0.9rem; color: #555; min-height: 60px; margin-bottom: 15px;">
-            {tool['description']}
-        </div>
-        <div style="font-size: 0.8rem; color: {status_color}; font-weight: bold; margin-top: auto; padding: 5px 10px; border-radius: 20px; background-color: rgba(46, 139, 87, 0.1);">
-            {status_indicator}
-        </div>
-    </div>
-    """
-    
-    st.markdown(button_html, unsafe_allow_html=True)
-    
-    # Navigation link with enhanced styling - restoring the cool design
-    if tool["status"] == "external" and tool["url"]:
-        st.link_button("Open External Tool ↗", tool["url"], use_container_width=True)
-    else:
-        # Use switch_page for internal tools (more reliable than page_link)
-        if st.button("Open Tool", key=f"tool_{tool['name']}", use_container_width=True):
-            st.switch_page(tool["page"])
 
 def create_category_filter():
     """Create category filter for tools"""
