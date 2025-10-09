@@ -124,8 +124,6 @@ def create_tool_grid():
                 display: flex;
                 flex-direction: column;
                 justify-content: space-between;
-                cursor: pointer;
-                transition: all 0.3s ease;
             ">
                 <div style="font-size: 2.5rem; margin-bottom: 10px;">{tool['icon']}</div>
                 <div style="font-weight: bold; font-size: 1.1rem; margin-bottom: 8px; color: #C71585;">{tool['name']}</div>
@@ -138,40 +136,25 @@ def create_tool_grid():
             </div>
             """
             
-            # Add hover effect for CTkButton styling with magenta emphasis
-            hover_script = f"""
-            <script>
-            const button{i} = document.currentScript.parentElement;
-            if (button{i}) {{
-                button{i}.addEventListener('mouseenter', function() {{
-                    this.style.transform = 'translateY(-3px)';
-                    this.style.boxShadow = '0 6px 12px rgba(199, 21, 133, 0.3)';
-                    this.style.borderColor = '#C71585';
-                }});
-                button{i}.addEventListener('mouseleave', function() {{
-                    this.style.transform = 'translateY(0)';
-                    this.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.2)';
-                    this.style.borderColor = '#FF00FF';
-                }});
-            }}
-            </script>
-            """
-            
             # Create navigation buttons
             if tool['status'] == 'internal':
                 # For internal tools, use switch_page
-                if st.button(button_label, key=f"tool-button-{i}", use_container_width=True, unsafe_allow_html=True):
+                if st.button(f"{tool['name']} Tool", key=f"tool-button-{i}", use_container_width=True):
                     st.switch_page(tool['page'])
-                st.markdown(hover_script, unsafe_allow_html=True)
+                # Display the styled button as static content below the actual button
+                st.markdown(button_label, unsafe_allow_html=True)
             else:
                 # For external tools, use link_button if URL exists
                 if 'url' in tool and tool['url']:
-                    st.link_button(button_label, tool['url'], use_container_width=True, unsafe_allow_html=True)
+                    st.link_button(f"Open {tool['name']}", tool['url'], use_container_width=True)
+                    # Display the styled button as static content
+                    st.markdown(button_label, unsafe_allow_html=True)
                 else:
                     # Fallback for external tools without URL
-                    if st.button(button_label, key=f"tool-button-{i}", use_container_width=True, unsafe_allow_html=True):
+                    if st.button(f"{tool['name']} Tool", key=f"tool-button-{i}", use_container_width=True):
                         st.switch_page(tool['page'])
-                st.markdown(hover_script, unsafe_allow_html=True)
+                    # Display the styled button as static content
+                    st.markdown(button_label, unsafe_allow_html=True)
 
 
 def create_category_filter():
