@@ -12,8 +12,6 @@
 
     <title>Hand Receipt (RPWA 28)</title>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
     <style>
 
         body {
@@ -21,10 +19,6 @@
             font-family: sans-serif;
 
             margin: 0;
-
-            max-width: 210mm;
-
-            overflow-x: hidden;
 
         }
 
@@ -98,10 +92,6 @@
 
             text-align: left;
 
-            word-wrap: break-word;
-
-            overflow-wrap: break-word;
-
         }
 
 
@@ -128,8 +118,6 @@
 
             word-wrap: break-word;
 
-            overflow-wrap: break-word;
-
         }
 
 
@@ -144,31 +132,11 @@
 
             display: inline-block;
 
-            word-wrap: break-word;
-
-            overflow-wrap: break-word;
-
         }
 
 
 
         @media print {
-
-            html, body {
-
-                width: 210mm;
-
-                max-width: 210mm;
-
-                height: 297mm;
-
-                margin: 0;
-
-                padding: 0;
-
-                overflow: hidden;
-
-            }
 
             .container {
 
@@ -176,27 +144,11 @@
 
                 width: 210mm;
 
-                max-width: 210mm;
-
                 height: 297mm;
-
-                min-height: 297mm;
 
                 margin: 0;
 
                 padding: 10mm;
-
-                page-break-after: never;
-
-                page-break-inside: avoid;
-
-                page-break-before: avoid;
-
-                box-sizing: border-box;
-
-                overflow: hidden;
-
-                position: relative;
 
             }
 
@@ -214,111 +166,9 @@
 
                 margin: 0;
 
-                height: 100%;
-
-                overflow: hidden;
-
             }
 
-            
 
-            /* Ensure only the first page is printed */
-
-            .container:not(:first-child) {
-
-                display: none;
-
-            }
-
-            
-
-            /* Prevent any additional content from appearing */
-
-            body::after {
-
-                display: none !important;
-
-            }
-
-            
-
-            /* Ensure the container is visible for printing */
-
-            .container {
-
-                display: block !important;
-
-            }
-
-            
-
-            /* Prevent overflow on print */
-
-            * {
-
-                overflow: hidden !important;
-
-                word-wrap: break-word !important;
-
-                overflow-wrap: break-word !important;
-
-            }
-
-            
-
-            /* Force all content to stay within page boundaries */
-
-            * {
-
-                max-height: inherit;
-
-            }
-
-            
-
-            /* Ensure tables don't break across pages */
-
-            table {
-
-                page-break-inside: avoid;
-
-                break-inside: avoid;
-
-            }
-
-            
-
-            /* Ensure the bottom-left box stays within bounds */
-
-            .bottom-left-box {
-
-                page-break-inside: avoid;
-
-                break-inside: avoid;
-
-                position: absolute;
-
-                bottom: 40mm;
-
-                left: 40mm;
-
-                border: 2px solid black;
-
-                padding: 10px;
-
-                width: calc(210mm - 80mm);
-
-                max-width: calc(210mm - 80mm);
-
-                text-align: left;
-
-                height: auto;
-
-                box-sizing: border-box;
-
-            }
-
-            
 
             @page {
 
@@ -326,19 +176,63 @@
 
                 margin: 0;
 
-                page-break-after: never;
-
             }
 
-            
+        }
 
-            /* Hide interactive elements when printing */
 
-            #prompt-container {
 
-                display: none !important;
+        .seal-container {
 
-            }
+            position: absolute;
+
+            left: 10mm;
+
+            bottom: 10mm;
+
+            width: 40mm;
+
+            height: 25mm;
+
+            z-index: 10;
+
+        }
+
+
+
+        .seal {
+
+            width: 100%;
+
+            height: 100%;
+
+            border: 2px solid blue;
+
+            text-align: center;
+
+            display: flex;
+
+            flex-direction: column;
+
+            justify-content: space-around;
+
+            align-items: center;
+
+            padding: 5px;
+
+            box-sizing: border-box;
+
+        }
+
+
+
+        .seal p {
+
+            margin: 0;
+
+            font-size: 8px;
+
+            color: blue;
 
         }
 
@@ -362,12 +256,6 @@
 
             height: auto;
 
-            max-width: calc(210mm - 80mm);
-
-            word-wrap: break-word;
-
-            overflow-wrap: break-word;
-
         }
 
 
@@ -376,10 +264,6 @@
 
             margin: 3px 0;
 
-            word-wrap: break-word;
-
-            overflow-wrap: break-word;
-
         }
 
 
@@ -387,10 +271,6 @@
         .bottom-left-box .blue-text {
 
             color: blue;
-
-            word-wrap: break-word;
-
-            overflow-wrap: break-word;
 
         }
 
@@ -504,138 +384,6 @@
 
         }
 
-        
-
-        #download-button {
-
-            grid-column: span 3;
-
-            background-color: #4CAF50;
-
-            color: white;
-
-            padding: 10px;
-
-            border: none;
-
-            border-radius: 8px;
-
-            font-size: 16px;
-
-            font-weight: bold;
-
-            cursor: pointer;
-
-            transition: background-color 0.3s ease;
-
-            margin-top: 10px;
-
-            display: none;
-
-        }
-
-        
-
-        #download-button:hover {
-
-            background-color: #45a049;
-
-        }
-
-        
-
-        #print-button {
-
-            grid-column: span 3;
-
-            background-color: #2196F3;
-
-            color: white;
-
-            padding: 10px;
-
-            border: none;
-
-            border-radius: 8px;
-
-            font-size: 16px;
-
-            font-weight: bold;
-
-            cursor: pointer;
-
-            transition: background-color 0.3s ease;
-
-            margin-top: 10px;
-
-            display: none;
-
-        }
-
-        
-
-        #print-button:hover {
-
-            background-color: #0b7dda;
-
-        }
-
-        
-
-        #auto-download-toggle {
-
-            grid-column: span 3;
-
-            margin-top: 10px;
-
-            display: none;
-
-        }
-
-        
-
-        #auto-download-toggle label {
-
-            font-weight: bold;
-
-            color: #333;
-
-        }
-
-        
-
-        /* Additional styles to prevent text overflow */
-
-        p, h1, h2, h3, h4, h5, h6, span, div {
-
-            word-wrap: break-word;
-
-            overflow-wrap: break-word;
-
-            max-width: 100%;
-
-        }
-
-        
-
-        table {
-
-            table-layout: fixed;
-
-            width: 100%;
-
-        }
-
-        
-
-        td, th {
-
-            word-wrap: break-word;
-
-            overflow-wrap: break-word;
-
-        }
-
     </style>
 
 </head>
@@ -659,19 +407,10 @@
         <input type="text" id="work">
 
         <button id="generate-button">Generate Receipt</button>
-        
-        <button id="print-button" style="display:none;">Print Receipt</button>
-        
-        <button id="download-button" style="display:none;">Download as PDF</button>
-        
-        <div id="auto-download-toggle" style="display:none;">
-            <label>
-                <input type="checkbox" id="auto-download-checkbox" checked> 
-                Auto-download PDF after generation
-            </label>
-        </div>
 
     </div>
+
+
 
     <div class="container" id="receipt-content"></div>
 
@@ -865,6 +604,20 @@
 
                 </div>
 
+                <div class="seal-container">
+
+                    <div class="seal">
+
+                        <p>DISTRICT</p>
+
+                        <p>PUBLIC WORKS DEPARTMENT</p>
+
+                        <p>UDAIPUR</p>
+
+                    </div>
+
+                </div>
+
                 <div class="bottom-left-box">
 
                     <p class="blue-text"> Passed for Rs. ${amount}</p>
@@ -873,117 +626,55 @@
 
                     <p class="blue-text"> Chargeable to Head:- 8443 [EMD-Refund]</p>
 
+                    <div class="seal">
+
+                        <p>Ar.</p>
+
+                        <p>D.A.</p>
+
+                        <p>E.E.</p>
+
+                    </div>
+
                 </div>
 
             `;
 
-}
-
-
-
-function downloadPDF(payee, amount) {
-
-    const element = document.getElementById('receipt-content');
-
-    const opt = {
-
-        margin: 1,
-
-        filename: `EMD_Refund_Receipt_${payee.replace(/\s+/g, '_')}_${amount}.pdf`,
-
-        image: { type: 'jpeg', quality: 0.98 },
-
-        html2canvas: { scale: 2, useCORS: true },
-
-        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' },
-
-        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
-
-    };
-
-    
-
-    // Generate and download PDF
-
-    html2pdf().set(opt).from(element).save();
-
-}
-
-
-
-document.getElementById('generate-button').addEventListener('click', function() {
-
-    const enteredPayee = document.getElementById('payee').value;
-
-    const enteredAmount = parseFloat(document.getElementById('amount').value);
-
-    const enteredWork = document.getElementById('work').value;
-
-    if (enteredPayee && !isNaN(enteredAmount) && enteredWork) {
-
-        const receiptHTML = generateReceiptHTML(enteredPayee, enteredAmount, enteredWork);
-
-        document.getElementById('receipt-content').innerHTML = receiptHTML;
-
-        document.getElementById('prompt-container').style.display = 'none';
-
-        // Show action buttons
-
-        const printButton = document.getElementById('print-button');
-
-        const downloadButton = document.getElementById('download-button');
-
-        const autoDownloadToggle = document.getElementById('auto-download-toggle');
-
-        printButton.style.display = 'block';
-
-        downloadButton.style.display = 'block';
-
-        autoDownloadToggle.style.display = 'block';
-
-        
-
-        printButton.onclick = function() {
-
-            window.print();
-
-        };
-
-        
-
-        downloadButton.onclick = function() {
-
-            downloadPDF(enteredPayee, enteredAmount);
-
-        };
-
-        
-
-        // Auto-download if checkbox is checked
-
-        const autoDownloadCheckbox = document.getElementById('auto-download-checkbox');
-
-        if (autoDownloadCheckbox && autoDownloadCheckbox.checked) {
-
-            // Small delay to ensure content is fully rendered
-
-            setTimeout(function() {
-
-                downloadPDF(enteredPayee, enteredAmount);
-
-            }, 500);
-
         }
 
-    } else {
 
-        alert("Please provide all required information. Amount must be a number.");
 
-    }
+        document.getElementById('generate-button').addEventListener('click', function() {
 
-});
+            const enteredPayee = document.getElementById('payee').value;
 
-</script>
+            const enteredAmount = parseFloat(document.getElementById('amount').value);
+
+            const enteredWork = document.getElementById('work').value;
+
+            if (enteredPayee && !isNaN(enteredAmount) && enteredWork) {
+
+                const receiptHTML = generateReceiptHTML(enteredPayee, enteredAmount, enteredWork);
+
+                document.getElementById('receipt-content').innerHTML = receiptHTML;
+
+                document.getElementById('prompt-container').style.display = 'none';
+
+                setTimeout(function() {
+
+                    window.print();
+
+                }, 100);
+
+            } else {
+
+                alert("Please provide all required information. Amount must be a number.");
+
+            }
+
+        });
+
+    </script>
 
 </body>
 
